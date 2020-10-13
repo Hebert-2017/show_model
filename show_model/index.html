@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ch"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+    <title>首页</title>
+    
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script type="text/javascript" src="resource/jquery-1.11.1.min.js"></script>
+    <script src="resource/bootstrap.min.js"></script>
+    <link href="resource/bootstrap.css" rel="stylesheet" type="text/css">
+    <!--<link href="resource/show.css" rel="stylesheet">-->
+    <style>
+        body{
+        }
+        .b-center{
+            width: 400px;
+            height: 500px;
+            margin: 100px auto;
+        }
+    </style>
+</head>
+    <body>
+        <div class="b-center">
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('rice_cooker')">双立人智能电饭煲</button>
+            </p>
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('food_processer')">巴科隆料理机</button>
+            </p>
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('baidu_echo')">小度AI智能家庭助手</button>
+            </p>
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('shoes')">星光头层牛皮女鞋</button>
+            </p>
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('clothes')">歌莱丹雅小香风外套</button>
+            </p>
+            <p>
+                <button type="button" class="btn btn-primary" onclick="showModel('atmo_fighter')">飞机模型测试</button>
+            </p>
+        </div>
+        <script type="text/javascript">
+            function showModel(model_name){
+                window.location.href="showmodel.html?model_name="+model_name;
+            }
+        </script>
+    </body>
+</html>

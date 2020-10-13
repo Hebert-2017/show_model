@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ch"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+    <title>三维商品展示</title>
+    
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script type="text/javascript" src="resource/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="resource/three.js"></script>
+    <script type="text/javascript" src="resource/draco_decoder.js"></script>
+    <script type="text/javascript" src="resource/DRACOLoader.js"></script>
+    <script type="text/javascript" src="resource/OrbitControls.js"></script>
+    <script src="resource/bootstrap.min.js"></script>
+    <link href="resource/bootstrap.css" rel="stylesheet" type="text/css">
+    <link href="resource/show.css" rel="stylesheet">
+
+    <style>
+        body{
+            height: 100vh;
+        }
+        /* 默认modal样式修改 */
+        #codeModel .modal-content{
+            width: 485px;
+            margin: 0 auto;
+        }
+        #codeModel .modal-title{
+            font-size:16px;
+            color:#5f6379;
+        }
+        #codeModel .modal-body{
+            text-align: center;
+        }
+        #codeModel .modal-footer{
+            text-align: center;
+        }
+        #codeModel .modal-footer .btn{
+            width: 150px;
+            height: 36px;
+        }
+        @media  screen  and (max-width: 480px) {
+            #codeModel .modal-content{
+                width: 90%;
+            }
+            #codeModel .modal-footer .btn{
+                width: 150px;
+                height: 36px;
+                margin-top: 30px;
+            }
+        }
+    </style>
+</head>
+<body class="">
+<div>
+
+</div>
+
+<script type="text/javascript">
+    // 获取URL数据
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+        console.log(window.location.search)
+        if(window.location.search!=null && window.location.search!=''){
+            var r = window.location.search.substr(1).match(reg);
+        }
+        if (r!=null) return (r[2]); return null;
+    }
+
+    $(function(){
+        //getValues();
+        //mesh = GetQueryString("mesh");
+        //texture = GetQueryString("texture");
+        /*if(sname!=null) {
+            var sname_ = decodeURIComponent(sname);
+            console.log(sname_);
+        }*/
+    });
+
+    //接收一个值
+    function getValues(){
+        var result;
+        var url=window.location.search; //获取url中"?"符后的字串
+        if(url.indexOf("?")!=-1){
+            result = url.substr(url.indexOf("=")+1);
+        }
+        return result;
+    }
+
+    var json = {
+        model_list:
+            {   rice_cooker:{ mesh:"rice_cooker.drc",  texture:"rice_cooker_texture.jpg" } ,
+                food_processer:{ mesh:"food_processer.drc",  texture:"food_processer_texture.jpg" } ,
+                baidu_echo:{ mesh:"baidu_echo.drc",  texture:"baidu_echo_texture.jpg" } ,
+                shoes:{ mesh:"shoes.drc",  texture:"shoes_texture.jpg" } ,
+                clothes:{ mesh:"clothes.drc",  texture:"clothes_texture.jpg" } ,
+                atmo_fighter:{ mesh:"atmo_fighter.drc",  texture:"atmo_fighter_texture.jpg" } ,
+            }
+    };
+
+    var mesh,texture,model_name;
+    model_name= GetQueryString("model_name") ? GetQueryString("model_name") :null
+    //使用eval解析  
+    var obj = eval(json);
+    switch(model_name) {
+        case "rice_cooker":
+            mesh=obj.model_list.rice_cooker.mesh;
+            texture=obj.model_list.rice_cooker.texture;
+            break;
+        case "food_processer":
+            mesh=obj.model_list.food_processer.mesh;
+            texture=obj.model_list.food_processer.texture;
+            break;
+        case "baidu_echo":
+            mesh=obj.model_list.baidu_echo.mesh;
+            texture=obj.model_list.baidu_echo.texture;
+            break;
+        case "shoes":
+            mesh=obj.model_list.shoes.mesh;
+            texture=obj.model_list.shoes.texture;
+            break;
+        case "clothes":
+            mesh=obj.model_list.clothes.mesh;
+            texture=obj.model_list.clothes.texture;
+            break;
+        case "atmo_fighter":
+            mesh=obj.model_list.atmo_fighter.mesh;
+            texture=obj.model_list.atmo_fighter.texture;
+            break;
+        default:
+            mesh=obj.model_list.clothes.mesh;
+            texture=obj.model_list.clothes.texture;
+            break;
+    }
+
+    var parameter = {
+                        mesh: './models/'+mesh,
+                        texture: './images/'+texture,
+                        config:{"meshscale":{"x":0.09340692666949718,"y":0.09340692666949718,"z":0.09340692666949718},"meshrot":{"_x":4.741638357004209,"_y":0,"_z":0.52210613640056,"_order":"XYZ"}}
+                    };
+    $('#codeModel').modal('hide');
+
+    showmodel(parameter);
+    function includeJs(filename) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.src = filename;
+        script.type = 'text/javascript';
+        head.appendChild(script)
+    }
+
+    function showmodel(parameter) {
+        var container;
+        var camera, scene, renderer;
+
+        init();
+        animate();
+
+        function init() {
+            container = document.createElement('div');
+            document.body.appendChild(container);
+            camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1500 );
+            camera.position.set(3, 0.15, 1);
+            //camera.position.set( parameter.config.campos.x, parameter.config.campos.y, parameter.config.campos.z);
+            cameraTarget = new THREE.Vector3(0, 0, 0);
+            camera.lookAt(cameraTarget);
+            scene = new THREE.Scene();
+            //model
+            var textureloader = new THREE.TextureLoader();
+            var meshTex= textureloader.load(parameter.texture);
+            var loader = new THREE.DRACOLoader();
+            loader.load( parameter.mesh, function ( geometry ) {
+                geometry.computeVertexNormals();
+                var material = new THREE.MeshBasicMaterial({map:meshTex,side: THREE.DoubleSide });
+                var mesh = new THREE.Mesh( geometry, material );
+                mesh.geometry.center();
+                //屏幕尺寸比例不同，缩放比例不一样。
+                //var newscale = window.innerHeight / window.innerWidth * 4 / 3.0 * parameter.config.meshscale.x;
+                // mesh.scale.set(newscale,newscale,newscale);
+                mesh.rotation.set(parameter.config.meshrot._x,parameter.config.meshrot._y,parameter.config.meshrot._z);
+
+                resizeGeometry(mesh, mesh.geometry);
+                //volumeComputer( mesh.geometry);
+                scene.add( mesh );
+            } );
+
+            // renderer
+            renderer = new THREE.WebGLRenderer({alpha:true,antialias:true});
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setClearAlpha(0);
+            container.appendChild( renderer.domElement );
+
+            window.addEventListener( 'resize', onWindowResize, false );
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
+            controls.enableZoom = true;
+            controls.minDistance=camera.position.z/2;
+            controls.maxDistance=camera.position.z * 4;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.4;
+            controls.minPolarAngle=Math.PI/2 - 0.2;
+            controls.maxPolarAngle=Math.PI/2 + 0.2;
+        }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+        //缩放模型至合适大小、移动模型至合适位置
+        function resizeGeometry(bufferMesh, bufferGeometry, font) {
+            // Compute range of the geometry coordinates for proper rendering.
+            /*
+                  5____4
+                1/___0/|
+                | 6__|_7
+                2/___3/
+                0: max.x, max.y, max.z
+                1: min.x, max.y, max.z
+                2: min.x, min.y, max.z
+                3: max.x, min.y, max.z
+                4: max.x, max.y, min.z
+                5: min.x, max.y, min.z
+                6: min.x, min.y, min.z
+                7: max.x, min.y, min.z
+            */
+
+            bufferGeometry.computeBoundingBox();
+            const maxX = bufferGeometry.boundingBox.max.x;
+            const maxY = bufferGeometry.boundingBox.max.y;
+            const maxZ = bufferGeometry.boundingBox.max.z;
+            const minX = bufferGeometry.boundingBox.min.x;
+            const minY = bufferGeometry.boundingBox.min.y;
+            const minZ = bufferGeometry.boundingBox.min.z;
+            const sizeX = maxX - minX;
+            const sizeY = maxY - minY;
+            const sizeZ = maxZ - minZ;
+            const diagonalSize = Math.sqrt(sizeX * sizeX + sizeY * sizeY + sizeZ * sizeZ);
+            const scale = 2.5 / diagonalSize;
+            const midX = (minX + maxX) / 2;
+            const midY = (minY + maxY) / 2;
+            const midZ = (minZ + maxZ) / 2;
+            bufferMesh.scale.multiplyScalar(scale);
+            bufferMesh.position.set(-midX * scale, -midY * scale, -midZ * scale);
+        }
+
+
+        //volume
+        function volumeComputer( bufferGeometry) {
+            bufferGeometry.computeBoundingBox();
+            console.log(bufferGeometry);
+            return;
+
+            //return;
+            var volume = 0;
+            for (var f = 0, fl = bufferGeometry.faces.length; f < fl; f++) {
+                var face = bufferGeometry.faces[f];
+                var vA = bufferGeometry.vertices[face.a];
+                var vB = bufferGeometry.vertices[face.b];
+                var vC = bufferGeometry.vertices[face.c];
+                var x1 = vA.x,
+                    x2 = vB.x,
+                    x3 = vC.x;
+                var y1 = vA.y,
+                    y2 = vB.y,
+                    y3 = vC.y;
+                var z1 = vA.z,
+                    z2 = vB.z,
+                    z3 = vC.z;
+                V = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3) / 6;
+                volume += V;
+            }
+            console.log('体积：',volume.toFixed(2)+'mm3');
+        }
+
+        function animate() {
+            controls.update();
+            render();
+            requestAnimationFrame( animate );
+        }
+        function render() {
+            renderer.render( scene, camera );
+        }
+    }
+</script>
+
+<div><canvas width="750" height="1334" style="width: 375px; height: 667px;"></canvas></div></body></html>
